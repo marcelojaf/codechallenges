@@ -1,7 +1,4 @@
 ﻿
-//TextWriter textWriter = new StreamWriter("C:\\dev\\labs", true);
-using System.Collections.Generic;
-
 Console.WriteLine("Inform the picture size:");
 int pictureCount = Convert.ToInt32(Console.ReadLine().Trim());
 
@@ -18,11 +15,6 @@ int result = Result.strokesRequired(picture);
 
 Console.WriteLine(result);
 
-/*textWriter.WriteLine(result);
-
-textWriter.Flush();
-textWriter.Close();*/
-
 class Result
 {
 
@@ -35,7 +27,7 @@ class Result
 
     public static int strokesRequired(List<string> picture)
     {
-        //Check if the picture list is empty or null
+        // Check if the picture list is empty or null
         if (picture == null || picture.Count == 0)
         {
             return 0;
@@ -78,13 +70,13 @@ class Result
             int currentIndex = currentMatrixItem.Row * numCols + currentMatrixItem.Col;
             matrixItemList[currentIndex].IsPainted = true;
 
-            char targetColor = currentMatrixItem.Value[0];
+            char targetColor = currentMatrixItem.Value;
 
             // Check for the upper item
             if (currentMatrixItem.Row > 0)
             {
                 currentIndex = (currentMatrixItem.Row - 1) * numCols + currentMatrixItem.Col;
-                if (matrixItemList[currentIndex].Value[0] == targetColor)
+                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
                 {
                     searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
                 }
@@ -94,27 +86,27 @@ class Result
             if (currentMatrixItem.Row < matrixItemList.Count / numCols - 1)
             {
                 currentIndex = (currentMatrixItem.Row + 1) * numCols + currentMatrixItem.Col;
-                if (matrixItemList[currentIndex].Value[0] == targetColor)
+                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
                 {
                     searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
                 }
             }
 
-            // Check for the item at the left
+            // Check for the item on the left
             if (currentMatrixItem.Col > 0)
             {
                 currentIndex = currentMatrixItem.Row * numCols + (currentMatrixItem.Col - 1);
-                if (matrixItemList[currentIndex].Value[0] == targetColor)
+                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
                 {
                     searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
                 }
             }
 
-            // Check for the item at the right
+            // Check for the item on the right
             if (currentMatrixItem.Col < numCols - 1)
             {
                 currentIndex = currentMatrixItem.Row * numCols + (currentMatrixItem.Col + 1);
-                if (matrixItemList[currentIndex].Value[0] == targetColor)
+                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
                 {
                     searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
                 }
@@ -126,23 +118,14 @@ class Result
         }
     }
 
-    /// <summary>
-    /// Class that represents one item in the Matrix of items to be painted
-    /// </summary>
     public class MatrixItem
     {
-        public string Value { get; set; }
+        public char Value { get; set; }
         public int Row { get; set; }
         public int Col { get; set; }
         public bool IsPainted { get; set; } = false;
     }
 
-    /// <summary>
-    /// Generates a List of MatrixItem with the row/column coordinate and a boolean value that represent if the item was painted or not.
-    /// </summary>
-    /// <param name="numRows">The number of rows</param>
-    /// <param name="numCols">The number of columns</param>
-    /// <returns>A list of MatrixItem objects</returns>
     public static List<MatrixItem> generateMatrixItems(int numRows, int numCols, List<string> picture)
     {
         List<MatrixItem> result = new List<MatrixItem>();
@@ -155,12 +138,13 @@ class Result
                 {
                     Row = i,
                     Col = j,
-                    Value = picture[i],
+                    Value = picture[i][j],
                 });
             }
         }
 
         return result;
     }
+
 
 }
