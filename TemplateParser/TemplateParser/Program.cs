@@ -42,65 +42,42 @@ public class Company
 
 public class TemplateParser
 {
-    private Dictionary<string, Delegate> tokenMap;
+    private Dictionary<string, Func<object, string>> tokenMappings;
 
     public TemplateParser()
     {
-        tokenMap = new Dictionary<string, Delegate>();
+        tokenMappings = new Dictionary<string, Func<object, string>>();
     }
 
-    public TemplateParser Register<T>(string token, Func<T, string> replacementFunction)
+    public TemplateParser Register<T>(string token, Func<T, string> func)
     {
-        if (!tokenMap.ContainsKey(token))
+        tokenMappings[token] = obj =>
         {
-            // Register the token and its replacement function.
-            tokenMap[token] = replacementFunction;
-        }
-        else
-        {
-            // Handle the case where a token is already registered.
-            // You can choose to handle this differently if needed.
-            throw new InvalidOperationException($"Token '{token}' is already registered.");
-        }
+            if (obj is T typedObj)
+            {
+                return func(typedObj);
+            }
+            return "";
+        };
         return this;
     }
 
     public string Parse(string template, object[] objects)
     {
-        // Use regular expressions to find all tokens in the template.
-        var regex = new Regex(@"{{(.*?)}}");
-        var matches = regex.Matches(template);
+        StringBuilder result = new StringBuilder(template);
 
-        // Iterate through each token match and perform substitution.
-        foreach (Match match in matches)
+        foreach (var obj in objects)
         {
-            var token = match.Value;
-            if (tokenMap.ContainsKey(token))
+            foreach (var tokenMapping in tokenMappings)
             {
-                // Extract the type name from within the double curly braces of the token.
-                var typeName = match.Groups[1].Value;
+                string token = tokenMapping.Key;
+                Func<object, string> func = tokenMapping.Value;
+                string replacement = func(obj);
 
-                // Find the corresponding object in the array of objects.
-                var obj = Array.Find(objects, o => o.GetType().Name == typeName);
-
-                if (obj != null)
-                {
-                    // Get the replacement function from the dictionary and execute it.
-                    var replacementFunction = (Func<object, string>)tokenMap[token];
-                    var replacement = replacementFunction(obj);
-
-                    // Replace the token with the result of the replacement function.
-                    template = template.Replace(token, replacement);
-                }
-                else
-                {
-                    // Handle the case where a matching object is not found.
-                    // You can choose to handle this differently if needed.
-                    throw new InvalidOperationException($"Matching object for '{token}' not found.");
-                }
+                result = result.Replace(token, replacement);
             }
         }
 
-        return template;
+        return result.ToString();
     }
 }
