@@ -1,6 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Text;
-using System.Text.RegularExpressions;
 
 var templateParser = new TemplateParser()
     .Register<User>("{{UserFirstName}}", (user) => user.FirstName)
@@ -44,11 +43,21 @@ public class TemplateParser
 {
     private Dictionary<string, Func<object, string>> tokenMappings;
 
+    /// <summary>
+    /// Constructor. Creates a new instance of TemplateParser.
+    /// </summary>
     public TemplateParser()
     {
         tokenMappings = new Dictionary<string, Func<object, string>>();
     }
 
+    /// <summary>
+    /// Registers a delegate function to replace a token in a template.
+    /// </summary>
+    /// <typeparam name="T">The type of object associated with the token.</typeparam>
+    /// <param name="token">The token to be replaced in the template.</param>
+    /// <param name="func">The delegate function that returns the value to be substituted.</param>
+    /// <returns>The current instance of TemplateParser.</returns>
     public TemplateParser Register<T>(string token, Func<T, string> func)
     {
         tokenMappings[token] = obj =>
@@ -57,11 +66,17 @@ public class TemplateParser
             {
                 return func(typedObj);
             }
-            return "";
+            return token;
         };
         return this;
     }
 
+    /// <summary>
+    /// Parses a template string and replaces tokens with corresponding values.
+    /// </summary>
+    /// <param name="template">The template string with tokens to be replaced.</param>
+    /// <param name="objects">An array of objects used to replace the tokens.</param>
+    /// <returns>The template string with tokens replaced.</returns>
     public string Parse(string template, object[] objects)
     {
         StringBuilder result = new StringBuilder(template);
