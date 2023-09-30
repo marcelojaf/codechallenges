@@ -11,7 +11,7 @@ for (int i = 0; i < pictureCount; i++)
     picture.Add(pictureItem);
 }
 
-int result = Result.strokesRequired(picture);
+int result = Result.StrokesRequired(picture);
 
 Console.WriteLine(result);
 
@@ -25,9 +25,13 @@ class Result
      * The function accepts STRING_ARRAY picture as parameter.
      */
 
-    public static int strokesRequired(List<string> picture)
+    /// <summary>
+    /// Calculates the minimum number of strokes required to completely repaint the picture.
+    /// </summary>
+    /// <param name="picture">The picture represented as a list of strings where each string is a row of colors.</param>
+    /// <returns>The minimum number of strokes required.</returns>
+    public static int StrokesRequired(List<string> picture)
     {
-        // Check if the picture list is empty or null
         if (picture == null || picture.Count == 0)
         {
             return 0;
@@ -35,7 +39,7 @@ class Result
 
         int numRows = picture.Count;
         int numCols = picture[0].Length;
-        List<MatrixItem> matrixItemList = generateMatrixItems(numRows, numCols, picture);
+        List<MatrixItem> matrix = GenerateMatrix(numRows, numCols, picture);
 
         int totalStrokes = 0;
 
@@ -44,12 +48,11 @@ class Result
             for (int col = 0; col < numCols; col++)
             {
                 int currentIndex = row * numCols + col;
-                MatrixItem currentMatrixItem = matrixItemList[currentIndex];
+                MatrixItem currentMatrixItem = matrix[currentIndex];
 
-                // If this item was not painted, let's paint it and check for adjacents equals
                 if (!currentMatrixItem.IsPainted)
                 {
-                    searchForAdjacents(ref matrixItemList, currentMatrixItem, numCols);
+                    PaintAdjacent(matrix, currentMatrixItem, numCols);
                     totalStrokes++;
                 }
             }
@@ -58,9 +61,15 @@ class Result
         return totalStrokes;
     }
 
-    public static void searchForAdjacents(ref List<MatrixItem> matrixItemList, MatrixItem currentMatrixItem, int numCols)
+    /// <summary>
+    /// Recursively paints adjacent cells with the same color.
+    /// </summary>
+    /// <param name="matrix">The matrix representing the picture.</param>
+    /// <param name="currentMatrixItem">The current matrix item being processed.</param>
+    /// <param name="numCols">The number of columns in the matrix.</param>
+    private static void PaintAdjacent(List<MatrixItem> matrix, MatrixItem currentMatrixItem, int numCols)
     {
-        if (!matrixItemList.Any() || currentMatrixItem is null || currentMatrixItem.Row < 0 || currentMatrixItem.Col < 0 || currentMatrixItem.IsPainted)
+        if (!matrix.Any() || currentMatrixItem == null || currentMatrixItem.Row < 0 || currentMatrixItem.Col < 0 || currentMatrixItem.IsPainted)
         {
             return;
         }
@@ -68,7 +77,7 @@ class Result
         try
         {
             int currentIndex = currentMatrixItem.Row * numCols + currentMatrixItem.Col;
-            matrixItemList[currentIndex].IsPainted = true;
+            matrix[currentIndex].IsPainted = true;
 
             char targetColor = currentMatrixItem.Value;
 
@@ -76,19 +85,19 @@ class Result
             if (currentMatrixItem.Row > 0)
             {
                 currentIndex = (currentMatrixItem.Row - 1) * numCols + currentMatrixItem.Col;
-                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
+                if (currentIndex >= 0 && matrix[currentIndex].Value == targetColor)
                 {
-                    searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
+                    PaintAdjacent(matrix, matrix[currentIndex], numCols);
                 }
             }
 
             // Check for the lower item
-            if (currentMatrixItem.Row < matrixItemList.Count / numCols - 1)
+            if (currentMatrixItem.Row < matrix.Count / numCols - 1)
             {
                 currentIndex = (currentMatrixItem.Row + 1) * numCols + currentMatrixItem.Col;
-                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
+                if (currentIndex >= 0 && matrix[currentIndex].Value == targetColor)
                 {
-                    searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
+                    PaintAdjacent(matrix, matrix[currentIndex], numCols);
                 }
             }
 
@@ -96,9 +105,9 @@ class Result
             if (currentMatrixItem.Col > 0)
             {
                 currentIndex = currentMatrixItem.Row * numCols + (currentMatrixItem.Col - 1);
-                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
+                if (currentIndex >= 0 && matrix[currentIndex].Value == targetColor)
                 {
-                    searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
+                    PaintAdjacent(matrix, matrix[currentIndex], numCols);
                 }
             }
 
@@ -106,9 +115,9 @@ class Result
             if (currentMatrixItem.Col < numCols - 1)
             {
                 currentIndex = currentMatrixItem.Row * numCols + (currentMatrixItem.Col + 1);
-                if (currentIndex >= 0 && matrixItemList[currentIndex].Value == targetColor)
+                if (currentIndex >= 0 && matrix[currentIndex].Value == targetColor)
                 {
-                    searchForAdjacents(ref matrixItemList, matrixItemList[currentIndex], numCols);
+                    PaintAdjacent(matrix, matrix[currentIndex], numCols);
                 }
             }
         }
@@ -118,15 +127,40 @@ class Result
         }
     }
 
+    /// <summary>
+    /// Represents an item in the matrix of colors.
+    /// </summary>
     public class MatrixItem
     {
+        /// <summary>
+        /// Gets or sets the color value of the item.
+        /// </summary>
         public char Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets the row index of the item.
+        /// </summary>
         public int Row { get; set; }
+
+        /// <summary>
+        /// Gets or sets the column index of the item.
+        /// </summary>
         public int Col { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the item has been painted.
+        /// </summary>
         public bool IsPainted { get; set; } = false;
     }
 
-    public static List<MatrixItem> generateMatrixItems(int numRows, int numCols, List<string> picture)
+    /// <summary>
+    /// Generates a matrix of items representing the picture.
+    /// </summary>
+    /// <param name="numRows">The number of rows in the picture.</param>
+    /// <param name="numCols">The number of columns in the picture.</param>
+    /// <param name="picture">The picture represented as a list of strings.</param>
+    /// <returns>The matrix of items representing the picture.</returns>
+    private static List<MatrixItem> GenerateMatrix(int numRows, int numCols, List<string> picture)
     {
         List<MatrixItem> result = new List<MatrixItem>();
 
@@ -145,6 +179,8 @@ class Result
 
         return result;
     }
+
+
 
 
 }
